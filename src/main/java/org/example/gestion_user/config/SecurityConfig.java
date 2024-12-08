@@ -21,12 +21,10 @@ public class SecurityConfig {
 
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
 
-    private final AgentService agentService;
 
     @Autowired
-    public SecurityConfig(RestAuthenticationEntryPoint authenticationEntryPoint, AgentService agentService) {
+    public SecurityConfig(RestAuthenticationEntryPoint authenticationEntryPoint) {
         this.authenticationEntryPoint = authenticationEntryPoint;
-        this.agentService = agentService;
     }
 
     @Bean
@@ -38,7 +36,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/agents/**").hasRole("ADMIN")
 
                         // Restreindre l'accès des agents
-                        .requestMatchers("/api/clients/**").hasRole( "AGENT")
+                        .requestMatchers("/api/clients/**").hasRole("AGENT")
 
                         // Authentifier tout le reste
                         .anyRequest().authenticated()
@@ -62,7 +60,13 @@ public class SecurityConfig {
                 .roles("ADMIN")
                 .build();
 
-        return new InMemoryUserDetailsManager(admin);
+        UserDetails agent = User.builder()
+                .username("agent")
+                .password(encoder.encode("agentpassword"))
+                .roles("AGENT")
+                .build();
+
+        return new InMemoryUserDetailsManager(admin, agent);
     }
 
     @Bean
