@@ -31,21 +31,29 @@ public class ClientController {
                                           @RequestParam String phonenumber,
                                           @RequestParam("cinRecto") MultipartFile cinRecto,
                                           @RequestParam("cinVerso") MultipartFile cinVerso,
-                                          @RequestParam AccountType accountType){
+                                          @RequestParam String accountType) {
 
         try {
+            AccountType accountTypeEnum = AccountType.fromDescription(accountType);
+
             byte[] cinRectoBytes = cinRecto.getBytes();
             byte[] cinVersoBytes = cinVerso.getBytes();
-            ClientDto clientDto = clientService.createClient(lastname, firstname, email, emailConfirmation,phonenumber,cinRectoBytes,cinVersoBytes,accountType);
+
+            ClientDto clientDto = clientService.createClient(
+                    lastname, firstname, email, emailConfirmation, phonenumber,
+                    cinRectoBytes, cinVersoBytes, accountTypeEnum
+            );
+
             return ResponseEntity.ok("Client ajouté avec succès");
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(400).body("Error saving Client"+e.getMessage());
+            return ResponseEntity.status(400).body("Error saving client: " + e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.status(500).body("Internal server error: " + e.getMessage());
         } catch (IOException e) {
             return ResponseEntity.status(500).body("Error reading CIN files: " + e.getMessage());
         }
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<ClientDto> getClientById(@PathVariable Long id) {
         return clientService.getClientById(id)
