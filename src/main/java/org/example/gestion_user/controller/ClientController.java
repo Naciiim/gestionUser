@@ -18,7 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/clients")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ROLE_AGENT')")
+@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_AGENT')")
 public class ClientController {
 
     private final ClientService clientService;
