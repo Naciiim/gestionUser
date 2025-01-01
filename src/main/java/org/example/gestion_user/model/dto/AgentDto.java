@@ -1,6 +1,7 @@
 package org.example.gestion_user.model.dto;
 
 import lombok.Data;
+import org.example.gestion_user.model.enumeration.Roles;
 
 @Data
 public class AgentDto{
@@ -20,4 +21,6 @@ public class AgentDto{
     private Long numLicence;
     private Long numRegCom;
     private boolean firstLogin;
+    private Roles role = Roles.ROLE_AGENT;
+
 }

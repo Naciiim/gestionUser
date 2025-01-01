@@ -2,6 +2,7 @@ package org.example.gestion_user.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.gestion_user.model.dto.AgentDto;
+import org.example.gestion_user.model.enumeration.Roles;
 import org.example.gestion_user.service.AgentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,9 +12,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/agents")
+@CrossOrigin(origins = "http://localhost:4200")
 @RequiredArgsConstructor //pour private final
 @PreAuthorize("hasRole('ADMIN')")
 public class AgentController {
@@ -41,13 +44,32 @@ public class AgentController {
             AgentDto agentDto = agentService.createAgent(lastname, firstname, email, emailConfirmation,
                     numCin, address, phonenumber, description, birthdate, numLicence, numRegCom,
                     cinRectoBytes, cinVersoBytes);
-            return ResponseEntity.ok("Agent ajouté avec succès");
+            if (agentDto.getRole() == null) {
+                agentDto.setRole(Roles.ROLE_AGENT); // Valeur par défaut
+            }
+            // Retourner l'objet client avec un message de succès
+            return ResponseEntity.ok().body(Map.of(
+                    "message", "Agent ajouté avec succès",
+                    "agent", agentDto
+            ));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(400).body("Error saving Agent"+e.getMessage());
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(500).body("Internal server error: " + e.getMessage());
+            // Retourner une erreur de validation avec un message clair
+            return ResponseEntity.status(400).body(Map.of(
+                    "message", "Erreur de validation des données",
+                    "error", e.getMessage()
+            ));
         } catch (IOException e) {
-            return ResponseEntity.status(500).body("Error reading CIN files: " + e.getMessage());
+            // Erreur de lecture des fichiers
+            return ResponseEntity.status(500).body(Map.of(
+                    "message", "Erreur lors de la lecture des fichiers CIN",
+                    "error", e.getMessage()
+            ));
+        } catch (RuntimeException e) {
+            // Autre erreur interne
+            return ResponseEntity.status(500).body(Map.of(
+                    "message", "Erreur interne du serveur",
+                    "error", e.getMessage()
+            ));
         }
     }
     @GetMapping("/{id}")

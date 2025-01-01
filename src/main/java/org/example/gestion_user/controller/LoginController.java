@@ -14,6 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:4200")
 public class LoginController {
 
     private final AuthenticationManager authenticationManager;
@@ -41,8 +42,10 @@ public class LoginController {
             Map<String, String> response = authService.checkFirstLogin(email);
 
             if (response != null && response.containsKey("redirectUrl")) {
-                return ResponseEntity.status(HttpStatus.FOUND).body(response);
+                // Renvoie une réponse avec un statut OK (200) et l'URL de redirection
+                return ResponseEntity.ok(response);
             }
+
 
             // Generate JWT token
             String token = jwtTokenProvider.generateToken(authentication);
@@ -54,19 +57,22 @@ public class LoginController {
     }
 
     @PostMapping("/change-password")
-    public ResponseEntity<?> changePassword(
+    public ResponseEntity<Map<String, String>> changePassword(
             @RequestParam String email,
             @RequestParam String newPassword,
             @RequestParam String confirmPassword) {
         try {
             if (!newPassword.equals(confirmPassword)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Les mots de passe ne correspondent pas.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "Les mots de passe ne correspondent pas."));
             }
 
-            authService.changePassword(email, newPassword);
-            return ResponseEntity.ok("Mot de passe changé avec succès !");
+            // Appelle la méthode de changement de mot de passe et récupère la redirection
+            Map<String, String> redirectResponse = authService.changePassword(email, newPassword);
+            return ResponseEntity.ok(redirectResponse);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 

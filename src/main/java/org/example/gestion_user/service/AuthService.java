@@ -41,26 +41,31 @@ public class AuthService {
         return null; // Not a first login
     }
 
-    public void changePassword(String email, String newPassword) {
-        // Try to retrieve the user as an Agent
+
+    public Map<String, String> changePassword(String email, String newPassword) {
+        // Recherche de l'utilisateur en tant qu'Agent
         Agent agent = agentRepository.findByEmail(email).orElse(null);
 
         if (agent != null) {
-            // Update password and mark first login as complete for Agent
+            // Met à jour le mot de passe et marque la première connexion comme terminée pour l'Agent
             agent.setPassword(passwordEncoder.encode(newPassword));
             agent.setFirstLogin(false);
             agentRepository.save(agent);
-            return;
+            // Retourne l'URL de redirection après un changement réussi
+            return Map.of("redirectUrl", "/api/auth/login");
         }
 
-        // Try to retrieve the user as a Client if not found as Agent
+        // Recherche de l'utilisateur en tant que Client si ce n'est pas un Agent
         Client client = clientRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
 
-        // Update password and mark first login as complete for Client
+        // Met à jour le mot de passe et marque la première connexion comme terminée pour le Client
         client.setPassword(passwordEncoder.encode(newPassword));
         client.setFirstLogin(false);
         clientRepository.save(client);
+
+        // Retourne l'URL de redirection après un changement réussi
+        return Map.of("redirectUrl", "/api/auth/login");
     }
 
 }
